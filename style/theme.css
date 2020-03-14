@@ -1,0 +1,50 @@
+body 
+{
+	font-family: consolas, monospace;
+	/* because tabs are spaces, apparently */
+	font-size: 0;
+	overflow-x: hidden;
+}
+
+.theme 
+{
+	color: #f7f5fe;
+	font-size: 12pt;
+	background-color: #980189;
+}
+
+.theme a 
+{
+	color: #b19ff9;
+}
+
+.theme a:visited 
+{
+	color: #d59ff9;
+}
+
+.theme-contrast
+{
+	color: #980189;
+	background-color: #f7f5fe;
+}
+
+.row 
+{
+	width: 100%;
+}
+
+.row-inner 
+{
+	padding: 10px;
+}
+
+footer 
+{
+	padding: 30px;
+}
+
+#sitemap
+{
+	
+}
