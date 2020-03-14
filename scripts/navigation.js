@@ -13,6 +13,11 @@ var Navigation = (
 		var backgroundObjects = [];
 		var lastTime;
 		
+		// for scrollin'
+		var underX = -100;
+		var underY = -100;
+		var overX = 100;
+		var overY = 100;
 		
 		function Star(x,y,radius = 1)
 		{
@@ -39,15 +44,18 @@ var Navigation = (
 		
 		Star.prototype.draw = function(context)
 		{
+			// if x and y ain't visible, we ain't draw'in nuthin
+			if(this.x + this.radius < 0 || this.y + this.radius < 0 || this.x + this.radius > canvas.width || this.y + this.height > canvas.height) return false;
+			
 			// main body
 			context.globalAlpha = 1.0;
 			fillCircle(context,this.x,this.y,this.radius,this.colour);
 			
 			// faint outer shadows
 			context.globalAlpha = 0.5;
-			fillCircle(context,this.x,this.y,this.radius+1,this.colour);
-			context.globalAlpha = 0.05;
-			fillCircle(context,this.x,this.y,this.radius+3,this.colour);
+			fillCircle(context,this.x,this.y,this.radius*2,this.colour);
+			context.globalAlpha = 0.02;
+			fillCircle(context,this.x,this.y,this.radius*2+5,this.colour);
 		}
 		
 		Star.prototype.tick = function(lapse)
@@ -60,10 +68,10 @@ var Navigation = (
 		// over x or under x? no problem! we wrap around!
 		Star.prototype.wrapRestitute = function()
 		{
-			if(this.x > canvas.width) this.x = 0;
-			if(this.x < 0) this.x = canvas.width;
-			if(this.y > canvas.height) this.y = 0
-			if(this.y < 0) this.y = canvas.height;
+			if(this.x > canvas.width + overX) this.x = 0 + underX;
+			if(this.x < 0 + underX) this.x = canvas.width + overX;
+			if(this.y > canvas.height + overY) this.y = 0 + underY;
+			if(this.y < 0 + underY) this.y = canvas.height + overY;
 		}
 		
 		function Constellation(stars)
@@ -182,7 +190,7 @@ var Navigation = (
 				context.fillRect(0,0,canvas.width,canvas.height);
 			},
 			
-			generateStars: function(count = 200)
+			generateStars: function(count = 500)
 			{
 				for(var i = 0; i < count; i++)
 				{
@@ -192,9 +200,9 @@ var Navigation = (
 			
 			generateRandomStar: function()
 			{
-				return new Star(randomInteger(0,canvas.width)
-						,randomInteger(0,canvas.height)
-						,randomInteger(0,1));
+				return new Star(randomInteger(0 + underX,canvas.width + overX)
+						,randomInteger(0 + underY,canvas.height + overY)
+						,randomNumber(0,1));
 			},
 			
 			generateConstellations: function(count = 5)
@@ -202,11 +210,11 @@ var Navigation = (
 				for(var i = 0; i < count; i++)
 				{
 					// we choose a starting point
-					backgroundObjects.push(Navigation.generateConstellation(randomInteger(5,10)));					
+					backgroundObjects.push(Navigation.generateRandomConstellation(randomInteger(5,10)));					
 				}
 			},
 			
-			generateConstellation: function(count = 5)
+			generateRandomConstellation: function(count = 5)
 			{
 				var stars = [];
 				for(var i = 0; i < count; i++)
