@@ -6,10 +6,20 @@ body
 	overflow-x: hidden;
 }
 
+.content 
+{
+	min-height: 100vh;
+	min-width: 100vw;
+}
+
+.text-container
+{
+	font-size: 12pt;
+}
+
 .theme 
 {
 	color: #f7f5fe;
-	font-size: 12pt;
 	background-color: #980189;
 }
 
@@ -29,6 +39,11 @@ body
 	background-color: #f7f5fe;
 }
 
+.theme-contrast p 
+{
+	color: #222222;
+}
+
 .row 
 {
 	width: 100%;
@@ -37,6 +52,16 @@ body
 .row-inner 
 {
 	padding: 10px;
+}
+
+.divider-bottom
+{
+	border-bottom: 1px solid;
+}
+
+.divider-top
+{
+	border-top: 1px solid;
 }
 
 footer 

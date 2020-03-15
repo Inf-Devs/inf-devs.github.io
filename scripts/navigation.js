@@ -8,9 +8,40 @@ var Navigation = (
 		var lineColour = "#ffffff";
 		var starColour = "#ffffff";
 		
+		var constellations = [
+			{
+				xPercent: 20,
+				yPercent: 20,
+				stars: [{x:0,y:0,radius:2}
+					,{x:80,y:20,radius:3}
+					,{x:120,y:70,radius:1}
+					,{x:180,y:110,radius:2}
+					,{x:170,y:160,radius:3}
+					,{x:270,y:190,radius:3}
+					,{x:300,y:140,radius:3}],
+				name: "about",
+				onmouseclick: function(){window.location.href = "about.html"}
+			},
+			{
+				xPercent: 50,
+				yPercent: 10,
+				stars: [{x:0,y:0,radius:2}
+					,{x:-10,y:30,radius:3}
+					,{x:10,y:70,radius:4}
+					,{x:30,y:150,radius:3}
+					,{x:170,y:160,radius:3}
+					,{x:190,y:70,radius:2}
+					,{x:160,y:20,radius:1}],
+				name: "projects",
+				onmouseclick: function(){window.location.href = "projects.html"}
+			},
+		];
+		
 		var canvas = null;	
 		var canvasContext = null;
+		var canvasBoundingRectangle = null;
 		var backgroundObjects = [];
+		var foregroundObjects = [];
 		var lastTime;
 		
 		// for scrollin'
@@ -19,7 +50,7 @@ var Navigation = (
 		var overX = 100;
 		var overY = 100;
 		
-		function Star(x,y,radius = 1)
+		function Star(x,y,radius = 1, fixed = false)
 		{
 			this.x = x;
 			this.y = y;
@@ -28,6 +59,7 @@ var Navigation = (
 			this.radius = radius;
 			this.colour = this.getRandomColour(); 
 			this.speed = this.getRandomSpeed();
+			this.fixed = fixed;
 		}
 		
 		Star.prototype.getRandomColour = function()
@@ -58,10 +90,22 @@ var Navigation = (
 			fillCircle(context,this.x,this.y,this.radius*2+5,this.colour);
 		}
 		
+		Star.prototype.move = function(x,y)
+		{
+			this.x += x;
+			this.y += y;
+		}
+		
+		Star.prototype.setPosition = function(x,y)
+		{
+			this.x = x;
+			this.y = y;
+		}
+		
 		Star.prototype.tick = function(lapse)
 		{
-			this.x += this.speed.x;
-			this.y += this.speed.y;
+			if(this.fixed) return false;
+			this.move(this.speed.x, this.speed.y);
 			this.wrapRestitute();
 		}
 		
@@ -74,13 +118,142 @@ var Navigation = (
 			if(this.y < 0 + underY) this.y = canvas.height + overY;
 		}
 		
-		function Constellation(stars)
+		function Constellation(stars, name = "")
 		{
 			this.stars = stars;
+			this.name = name;
+			if(this.stars.length < 1) 
+			{
+				return false;
+				console.log("Unable to create a constellation with no stars in it.");
+			}
+			// derived from stars (since a constellation itself is nothing)
+			this.calculateSize();
+			
+			this.mousedown = false;
+			this.hover = false;
+		}
+		
+		// changes EVERYTHING (not really)
+		Constellation.prototype.move = function(x,y)
+		{
+			this.x += x;
+			this.y += y;
+			
+			this.stars.forEach(star => star.move(x,y));
+			
+			this.centerX += x;
+			this.centerY += y;
+		}
+		
+		Constellation.prototype.setPosition = function(x,y, center = false)
+		{
+			// we cheat... a little... by using .move(x,y)
+			var deltaX;
+			var deltaY;
+			if(!center)
+			{
+				
+				deltaX = x - this.x;
+				deltaY = y - this.y;
+			}
+			else 
+			{
+				deltaX = x - this.centerX;
+				deltaY = y - this.centerY;
+			}
+			this.move(deltaX,deltaY);
+		}
+		
+		Constellation.prototype.calculateSize = function()
+		{
+			// reduce to a box 
+			this.x = this.getMinX();
+			this.y = this.getMinY();
+			
+			// max - min
+			this.width = this.getMaxX() - this.getMinX();
+			this.height = this.getMaxY() - this.getMinY();
+			
+			this.centerX = this.x + this.width/2;
+			this.centerY = this.y + this.height/2;
+			this.radius = Math.hypot(this.width/2,this.height/2);
+		}
+		
+		Constellation.prototype.onmousedown = function(mouseX, mouseY)
+		{
+			if(this.isInRadius(mouseX,mouseY)) 
+			{
+				this.mousedown = true;
+			}
+		}
+		
+		Constellation.prototype.onmouseup = function(mouseX, mouseY)
+		{
+			if(this.isInRadius(mouseX,mouseY) && this.mousedown) 
+			{
+				this.onmouseclick();
+			}
+			this.mousedown = null;
+		}
+		
+		Constellation.prototype.onmousemove = function(mouseX, mouseY)
+		{
+			if(this.isInRadius(mouseX,mouseY)) 
+			{
+				this.hover = true;
+			}
+			else 
+			{
+				this.hover = false;
+			}
+		}
+		
+		Constellation.prototype.isInBounds = function(x,y)
+		{
+			if(x >= this.x && x < this.x + this.width 
+				&& y > this.y && y < this.y + this.height)
+			{
+				return true;
+			}
+			return false;
+		}
+		
+		Constellation.prototype.isInRadius = function(x,y)
+		{
+			if(Math.hypot(Math.abs(this.centerX - x), Math.abs(this.centerY - y)) < this.radius) return true;
+			return false;
+		}
+		
+		Constellation.prototype.getMinX = function()
+		{
+			return this.stars.reduce((min,star) =>  star.x < min ? star.x : min, this.stars[0].x);
+		}
+		
+		Constellation.prototype.getMinY = function()
+		{
+			return this.stars.reduce((min,star) =>  star.y < min ? star.y : min, this.stars[0].y);
+		}
+		
+		Constellation.prototype.getMaxX = function()
+		{
+			return this.stars.reduce((max,star) =>  star.x > max ? star.x : max, this.stars[0].x);
+		}
+		
+		Constellation.prototype.getMaxY = function()
+		{
+			return this.stars.reduce((max,star) =>  star.y > max ? star.y : max, this.stars[0].y);
 		}
 		
 		Constellation.prototype.draw = function(context)
 		{
+			context.globalAlpha = this.hover ? 0.1 : 0.05;
+			context.fillStyle = "#ffffff";
+			//context.fillRect(this.x,this.y,this.width,this.height);
+			
+			// we CIRCLE the SQUARE!
+			fillCircle(context, this.centerX, this.centerY, this.radius, starColour);
+			
 			for(var i = 0, count = this.stars.length; i < count; i++)
 			{
 				//this.stars[i].draw(context);
@@ -105,11 +278,17 @@ var Navigation = (
 						,lineColour);
 				}
 			}
+			context.globalAlpha = 1.00;
+			context.fillStyle = "#ffffff";
+			// and write its name among the stars 
+			context.font = "24pt Arial";
+			var metric = context.measureText(this.name);
+			context.fillText(this.name,this.centerX - metric.width/2,this.y + this.radius * 2);
 		}
 		
 		Constellation.prototype.tick = function(lapse)
 		{
-			
+			this.calculateSize();
 		}
 		
 		function Point(x,y)
@@ -148,7 +327,12 @@ var Navigation = (
 				
 				Navigation.onresize();
 				Navigation.generateStars();
-				//Navigation.generateConstellations();
+				Navigation.generateConstellations();
+				Navigation.onresize();
+				
+				canvas.addEventListener("mousedown",Navigation.onmousedown, false);
+				canvas.addEventListener("mouseup",Navigation.onmouseup, false);
+				canvas.addEventListener("mousemove",Navigation.onmousemove, false);
 				
 				// we make sure the canvas is SCALABLE
 				window.addEventListener("resize", Navigation.onresize);
@@ -159,6 +343,53 @@ var Navigation = (
 			{
 				canvas.width = window.innerWidth;
 				canvas.height = window.innerHeight;
+				canvasBoundingRectangle = canvas.getBoundingClientRect();
+				
+				// resize the buttons!
+				foregroundObjects.forEach(object =>
+					{
+						if(object.data)
+						{
+							object.setPosition(object.data.xPercent * canvas.width / 100
+								,object.data.yPercent * canvas.height / 100);
+						}
+					});
+			},
+			
+			onmousedown: function(event)
+			{
+				var mouseX = event.clientX - canvasBoundingRectangle.x;
+				var mouseY = event.clientY - canvasBoundingRectangle.y;
+				
+				//console.log(`${mouseX},${mouseY}`);
+				for(var i = 0, count = foregroundObjects.length; i < count; i++)
+				{
+					foregroundObjects[i].onmousedown(mouseX,mouseY);
+				}
+			},
+			
+			onmouseup: function(event)
+			{
+				var mouseX = event.clientX - canvasBoundingRectangle.x;
+				var mouseY = event.clientY - canvasBoundingRectangle.y;
+				
+				//console.log(`${mouseX},${mouseY}`);
+				for(var i = 0, count = foregroundObjects.length; i < count; i++)
+				{
+					foregroundObjects[i].onmouseup(mouseX,mouseY);
+				}
+			},
+			
+			onmousemove: function(event)
+			{
+				var mouseX = event.clientX - canvasBoundingRectangle.x;
+				var mouseY = event.clientY - canvasBoundingRectangle.y;
+				
+				//console.log(`${mouseX},${mouseY}`);
+				for(var i = 0, count = foregroundObjects.length; i < count; i++)
+				{
+					foregroundObjects[i].onmousemove(mouseX,mouseY);
+				}
 			},
 			
 			draw: function(time)
@@ -179,6 +410,11 @@ var Navigation = (
 				{
 					backgroundObjects[i].draw(canvasContext);
 					backgroundObjects[i].tick(lapse);
+				}
+				
+				for(var i = 0, count = foregroundObjects.length; i < count; i++)
+				{
+					foregroundObjects[i].draw(canvasContext);
 				}
 				
 				window.requestAnimationFrame(Navigation.draw);
@@ -205,16 +441,42 @@ var Navigation = (
 						,randomNumber(0,1));
 			},
 			
-			generateConstellations: function(count = 5)
+			generateConstellations: function()
 			{
-				for(var i = 0; i < count; i++)
+				for(var i = 0, count = constellations.length; i < count; i++)
 				{
-					// we choose a starting point
-					backgroundObjects.push(Navigation.generateRandomConstellation(randomInteger(5,10)));					
+					foregroundObjects.push(Navigation.generateConstellationFromData(constellations[i]));
 				}
 			},
 			
-			generateRandomConstellation: function(count = 5)
+			generateConstellationFromData: function(data)
+			{
+				var stars = [];
+				for(var i = 0, count = data.stars.length; i < count; i++)
+				{
+					var star = new Star(data.stars[i].x
+						,data.stars[i].y 
+						,data.stars[i].radius
+						,true);
+					backgroundObjects.push(star);
+					stars.push(star);
+				}
+				var constellation = new Constellation(stars, data.name);
+				constellation.data = data;
+				if(data.onmouseclick) constellation.onmouseclick = data.onmouseclick;
+				return constellation;
+			},
+			
+			generateConstellationWithStars: function(stars)
+			{
+				for(var i = 0, count = stars.length; i < count; i++)
+				{
+					backgroundObjects.push(star);
+				}
+				return new Constellation(stars);
+			},
+			
+			generateRandomConstellationWithStars: function(count = 5)
 			{
 				var stars = [];
 				for(var i = 0; i < count; i++)
@@ -234,7 +496,7 @@ var Navigation = (
 					backgroundObjects.push(star);
 					stars.push(star);
 				}
-				return new Constellation(stars);
+				return new Constellation(stars, randomString(5));
 			},
 		}
 	}
