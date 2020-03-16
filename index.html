@@ -4,17 +4,20 @@
 	<title>inf-devs!</title>
 	<link rel="stylesheet" type="text/css" href="style/reset.css"/>
 	<link rel="stylesheet" type="text/css" href="style/theme.css"/>
+	<!-- <script src="libraries/pixi/pixi.min.js"></script> -->
 	<script src="scripts/random.js"></script>
 	<script src="scripts/navigation.js"></script>
+	<!-- <script src="scripts/navigation_application.js"></script> -->
 	<script>
 		window.onload = function()
 		{
 			Navigation.initialize();
+			<!-- NavigationApplication.initialize(); -->
 		}
 	</script>
 </head>
 <body>
-	<div class = "content">
+	<div class = "content" id = "content">
 		<canvas id="navigation">Your browser does not support the &lt;canvas&gt; element.</canvas>
 	</div>
 	<footer class="theme text-container">
@@ -24,7 +27,7 @@
 			<a href="index.html">Home</a>
 			<a href="about.html">About</a>
 			<a href="projects.html">Projects</a>
-			<a href="index.html">Contact</a>
+			<a href="contact.html">Contact</a>
 		</div>
 	</footer>
 </body>

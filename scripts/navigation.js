@@ -1,3 +1,10 @@
+/**
+	Code for the home page splash navigation that makes stars.
+	Deprecated.
+	@author laifrank2002
+	@date 2020-03-14
+ */
+
 // for the navigation element 
 var Navigation = (
 	function()
@@ -10,7 +17,7 @@ var Navigation = (
 		
 		var constellations = [
 			{
-				xPercent: 20,
+				xPercent: 10,
 				yPercent: 20,
 				stars: [{x:0,y:0,radius:2}
 					,{x:80,y:20,radius:3}
@@ -35,6 +42,17 @@ var Navigation = (
 				name: "projects",
 				onmouseclick: function(){window.location.href = "projects.html"}
 			},
+			{
+				xPercent: 70,
+				yPercent: 60,
+				stars: [{x:0,y:0,radius:2}
+					,{x:-10,y:30,radius:3}
+					,{x:50,y:20,radius:4}
+					,{x:130,y:150,radius:3}
+					,{x:170,y:40,radius:3}],
+				name: "contact",
+				onmouseclick: function(){window.location.href = "contact.html"}
+			}
 		];
 		
 		var canvas = null;	
@@ -64,8 +82,14 @@ var Navigation = (
 		
 		Star.prototype.getRandomColour = function()
 		{
-			// certified by RFC 1149.6 as IEEE-vetted random colour 
-			return starColour;
+			/*
+			 // certified by RFC 1149.6 as IEEE-vetted random colour 
+			 return starColour;
+			*/
+			var r = randomInteger(100,255);
+			var g = r > 170 ? randomInteger(170,255) : randomInteger(50,150);
+			var b = r > 200 ? randomInteger(0,255) : r - randomInteger(100,255);
+			return RGBToHex(r,g,b);
 		}
 		
 		Star.prototype.getRandomSpeed = function()
@@ -274,7 +298,7 @@ var Navigation = (
 						,this.stars[i].y 
 						,this.stars[i-1].x 
 						,this.stars[i-1].y 
-						,2
+						,3
 						,lineColour);
 				}
 			}
@@ -289,6 +313,21 @@ var Navigation = (
 		Constellation.prototype.tick = function(lapse)
 		{
 			this.calculateSize();
+		}
+		
+		function RGBToHex(r,g,b)
+		{
+			return `#${padString(r.toString(16),2,"0")}${padString(g.toString(16),2,"0")}${padString(b.toString(16),2,"0")}`;
+		}
+		
+		// pads in front 
+		function padString(string, places, character = "0")
+		{
+			for(var index = string.length; index < places; index++)
+			{
+				string = character + string;
+			}
+			return string;
 		}
 		
 		function Point(x,y)

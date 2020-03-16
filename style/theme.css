@@ -39,7 +39,9 @@ body
 	background-color: #f7f5fe;
 }
 
-.theme-contrast p 
+.theme-contrast li,
+.theme-contrast ol,
+.theme-contrast p
 {
 	color: #222222;
 }
